@@ -1,6 +1,7 @@
 
-## Stolen.... re-purposed.... form Stack Overflow
+## Stolen.... re-purposed.... form Stack Overflow and Reddit
 ## https://stackoverflow.com/questions/19697846/how-to-convert-csv-file-to-multiline-json
+## https://www.reddit.com/r/Python/comments/6bvw7l/trouble_parsing_json_data_response_from_google/
 
 
 # Google Maps Services
@@ -19,7 +20,7 @@
 ##  t.string "city" 
 ##  t.float "longitude"
 ##  t.float "latitude"
-##  t.string "address_name"       # not sure what this means
+##  t.string "address_name"       # not sure what this means. ASSUMPTION: it is the formatted name
 ##  t.string "state"
 ##  t.string "zip"
 ##  t.string "google_place_id"     # this comes from google geocoding api
@@ -44,6 +45,8 @@ json_file = local_file_path + json_file_name
 csv_file_read = open(csv_file, 'r')
 json_file_write = open(json_file, 'w')
 
+
+# This list is never used in the code. It's now redundant.
 fieldnames = ("county","shelter", "address", "phone", "ada", 
 "allow_pets", "open", "accepting", "active", "city", "longitude",
 "latitude", "address_name", "state", "zip","google_place_id")
@@ -54,11 +57,29 @@ for row in csv_reader:
     # For the address dict, lookup its value in the Google API
     row_address = row.get('address')
     geocode_result = gmaps.geocode(row_address)
-    print(len(geocode_result))
+    for result in geocode_result:
+        try:
+            lat = result['geometry']['location']['lat']
+            lng = result['geometry']['location']['lng']
+            google_place_id = result['place_id']
+            address_name = result['formatted_address']
+        except KeyError:
+            lat = None
+            lng = None
+            google_place_id = None
+            address_name = None
+        # Append the returned API value to the dict
+        row['latitude'] = lat
+        row['longitude'] = lng
+        row['google_place_id'] = google_place_id
+        #Used formatted address because 
+        # 1. we're unsure of address name's true purpose 
+        # 2. formatted address serves as a sanity check that google returned the correc location  
+        # 3. Goole buries values like postal code into its JSON results 
+        row['address_name'] = address_name  # write the dict to JSON
+    json.dump(row, json_file_write)
+    json_file_write.write('\n')
 
 
-# Append the returned API value to the dict
-# write the dict to JSON
-
-# Address Fields
-## 
+csv_file_read.close()
+json_file_write.close()
