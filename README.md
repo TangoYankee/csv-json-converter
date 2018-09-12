@@ -15,3 +15,8 @@ Convert initial scraped shelter information from csv to json
    - Alternatively, change the file path in ```settings.py``` to whereever you would like to place the data
 8. Run the program
 9. Go into the data folder and retrieve the newly created JSON file
+
+**Note: Address_name is swapped with formatted_address from googleapi results. 
+        # 1. we're unsure of address name's true purpose 
+        # 2. formatted address serves as a sanity check that google returned the correct location  
+        # 3. Goole buries values like postal code into its JSON results
